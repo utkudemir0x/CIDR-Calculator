@@ -90,10 +90,6 @@ def to_binary(ip):
     return ".".join(f"{int(o):08b}" for o in str(ip).split("."))
 
 
-# ----------------------------------------------------------------------
-# Menü fonksiyonları
-# ----------------------------------------------------------------------
-
 def print_field(label, value, color=C.GREEN):
     print(f"{C.DIM}{label:<22}{C.RESET}: {color}{value}{C.RESET}")
 
@@ -227,10 +223,6 @@ Bu araç, IP adresleri ve CIDR (subnet) hesaplamaları yapmanızı sağlar.
 {C.DIM}Örnek CIDR notasyonu: 192.168.1.0/24{C.RESET}
 """)
 
-
-# ----------------------------------------------------------------------
-# Ana Menü
-# ----------------------------------------------------------------------
 
 def print_menu():
     print(BANNER)
