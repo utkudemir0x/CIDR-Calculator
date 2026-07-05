@@ -65,7 +65,7 @@ CIDR Calculator
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/CIDR-Calculator.git
+git clone https://github.com/utkudemir0x/CIDR-Calculator.git
 ```
 
 Enter the directory
