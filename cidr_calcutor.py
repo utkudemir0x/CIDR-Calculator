@@ -2,16 +2,16 @@
 """
 CIDR Calculator
 ===============
-Basit bir komut satırı IP/CIDR hesaplama aracı.
+A simple command-line IP/CIDR calculation tool.
 
-Menü:
-[1] Calculate CIDR          -> IP + CIDR girilir, ağ bilgileri hesaplanır
-[2] IP Information           -> Tek bir IP hakkında bilgi (sınıf, özel/genel vb.)
-[3] Subnet Mask from CIDR     -> CIDR'den subnet mask üretir
-[4] Wildcard Mask             -> CIDR'den wildcard mask üretir
-[5] Binary Converter          -> IP <-> Binary dönüşümü
-[6] Help                      -> Kullanım bilgisi
-[0] Exit                      -> Çıkış
+Menu:
+[1] Calculate CIDR            -> Enter IP + CIDR, calculate network info
+[2] IP Information            -> Info about a single IP (class, private/public, etc.)
+[3] Subnet Mask from CIDR     -> Generate subnet mask from CIDR
+[4] Wildcard Mask             -> Generate wildcard mask from CIDR
+[5] Binary Converter          -> IP <-> Binary conversion
+[6] Help                      -> Usage information
+[0] Exit                      -> Quit
 """
 
 import ipaddress
@@ -39,7 +39,7 @@ BANNER = rf"""{C.CYAN}{C.BOLD}
 ╚██████╗██║██████╔╝██║  ██║    ╚██████╗██║  ██║███████╗╚██████╗╚██████╔╝   ██║   ╚██████╔╝██║  ██║
  ╚═════╝╚═╝╚═════╝ ╚═╝  ╚═╝     ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝    ╚═╝    ╚═════╝ ╚═╝  ╚═╝
                                                                                                   
-{C.RESET}{C.DIM}                 IPv4 / CIDR / Subnet Hesaplama Aracı{C.RESET}
+{C.RESET}{C.DIM}                 IPv4 / CIDR / Subnet Calculation Tool{C.RESET}
 """
 
 
@@ -51,25 +51,25 @@ def clear_line():
     print(f"{C.DIM}{'-' * 55}{C.RESET}")
 
 
-def get_ip_input(prompt="IP adresi girin (örn: 192.168.1.10): "):
+def get_ip_input(prompt="Enter IP address (e.g. 192.168.1.10): "):
     while True:
         raw = input(prompt).strip()
         try:
             return ipaddress.ip_address(raw)
         except ValueError:
-            print("Geçersiz IP adresi! Tekrar deneyin.\n")
+            print("Invalid IP address! Try again.\n")
 
 
-def get_cidr_input(prompt="CIDR / prefix uzunluğu girin (0-32): "):
+def get_cidr_input(prompt="Enter CIDR / prefix length (0-32): "):
     while True:
         raw = input(prompt).strip()
         try:
             val = int(raw)
             if 0 <= val <= 32:
                 return val
-            print("CIDR 0 ile 32 arasında olmalı!\n")
+            print("CIDR must be between 0 and 32!\n")
         except ValueError:
-            print("Geçersiz sayı! Tekrar deneyin.\n")
+            print("Invalid number! Try again.\n")
 
 
 def ip_class(ip):
@@ -83,12 +83,16 @@ def ip_class(ip):
     elif first_octet < 240:
         return "D (Multicast)"
     else:
-        return "E (Deneysel)"
+        return "E (Experimental)"
 
 
 def to_binary(ip):
     return ".".join(f"{int(o):08b}" for o in str(ip).split("."))
 
+
+# ----------------------------------------------------------------------
+# Menu functions
+# ----------------------------------------------------------------------
 
 def print_field(label, value, color=C.GREEN):
     print(f"{C.DIM}{label:<22}{C.RESET}: {color}{value}{C.RESET}")
@@ -96,52 +100,52 @@ def print_field(label, value, color=C.GREEN):
 
 def calculate_cidr():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== CIDR Hesaplama =={C.RESET}")
-    ip_raw = input(f"{C.YELLOW}IP adresi (örn: 192.168.1.10): {C.RESET}").strip()
+    print(f"{C.BOLD}{C.MAGENTA}== CIDR Calculation =={C.RESET}")
+    ip_raw = input(f"{C.YELLOW}IP address (e.g. 192.168.1.10): {C.RESET}").strip()
     cidr = get_cidr_input()
 
     try:
         network = ipaddress.ip_network(f"{ip_raw}/{cidr}", strict=False)
     except ValueError as e:
-        print(f"{C.RED}Hata: {e}{C.RESET}")
+        print(f"{C.RED}Error: {e}{C.RESET}")
         return
 
     print()
-    print_field("Girilen IP", ip_raw, C.CYAN)
+    print_field("Entered IP", ip_raw, C.CYAN)
     print_field("CIDR", f"/{cidr}", C.CYAN)
-    print_field("Ağ Adresi (Network)", network.network_address)
-    print_field("Broadcast Adresi", network.broadcast_address)
+    print_field("Network Address", network.network_address)
+    print_field("Broadcast Address", network.broadcast_address)
     print_field("Subnet Mask", network.netmask)
     print_field("Wildcard Mask", network.hostmask)
-    print_field("Toplam Adres Sayısı", network.num_addresses)
+    print_field("Total Address Count", network.num_addresses)
 
     usable = list(network.hosts())
     if usable:
-        print_field("Kullanılabilir Host", len(usable))
-        print_field("İlk Kullanılabilir", usable[0])
-        print_field("Son Kullanılabilir", usable[-1])
+        print_field("Usable Hosts", len(usable))
+        print_field("First Usable", usable[0])
+        print_field("Last Usable", usable[-1])
     else:
-        print_field("Kullanılabilir Host", "0 (Bu ağda host adresi yok)", C.RED)
+        print_field("Usable Hosts", "0 (No host addresses in this network)", C.RED)
 
-    print_field("Ağ Sınıfı", ip_class(network.network_address), C.YELLOW)
-    print_field("Binary Ağ Adresi", to_binary(network.network_address), C.BLUE)
+    print_field("Network Class", ip_class(network.network_address), C.YELLOW)
+    print_field("Binary Network Address", to_binary(network.network_address), C.BLUE)
 
 
 def yn(val):
-    return (C.GREEN + "Evet" + C.RESET) if val else (C.RED + "Hayır" + C.RESET)
+    return (C.GREEN + "Yes" + C.RESET) if val else (C.RED + "No" + C.RESET)
 
 
 def ip_information():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== IP Bilgisi =={C.RESET}")
+    print(f"{C.BOLD}{C.MAGENTA}== IP Information =={C.RESET}")
     ip = get_ip_input()
 
     print()
-    print_field("IP Adresi", ip, C.CYAN)
-    print_field("Versiyon", f"IPv{ip.version}", C.CYAN)
+    print_field("IP Address", ip, C.CYAN)
+    print_field("Version", f"IPv{ip.version}", C.CYAN)
     print_field("Binary", to_binary(ip), C.BLUE)
-    print_field("Sınıf", ip_class(ip), C.YELLOW)
-    print(f"{C.DIM}{'Özel (Private)':<22}{C.RESET}: {yn(ip.is_private)}")
+    print_field("Class", ip_class(ip), C.YELLOW)
+    print(f"{C.DIM}{'Private':<22}{C.RESET}: {yn(ip.is_private)}")
     print(f"{C.DIM}{'Loopback':<22}{C.RESET}: {yn(ip.is_loopback)}")
     print(f"{C.DIM}{'Multicast':<22}{C.RESET}: {yn(ip.is_multicast)}")
     print(f"{C.DIM}{'Reserved':<22}{C.RESET}: {yn(ip.is_reserved)}")
@@ -151,7 +155,7 @@ def ip_information():
 
 def subnet_mask_from_cidr():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== CIDR'den Subnet Mask =={C.RESET}")
+    print(f"{C.BOLD}{C.MAGENTA}== Subnet Mask from CIDR =={C.RESET}")
     cidr = get_cidr_input()
     mask = ipaddress.IPv4Network(f"0.0.0.0/{cidr}").netmask
     print()
@@ -162,7 +166,7 @@ def subnet_mask_from_cidr():
 
 def wildcard_mask():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== CIDR'den Wildcard Mask =={C.RESET}")
+    print(f"{C.BOLD}{C.MAGENTA}== Wildcard Mask from CIDR =={C.RESET}")
     cidr = get_cidr_input()
     wildcard = ipaddress.IPv4Network(f"0.0.0.0/{cidr}").hostmask
     print()
@@ -173,56 +177,60 @@ def wildcard_mask():
 
 def binary_converter():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== Binary Dönüştürücü =={C.RESET}")
+    print(f"{C.BOLD}{C.MAGENTA}== Binary Converter =={C.RESET}")
     print(f"{C.YELLOW}[1]{C.RESET} IP -> Binary")
     print(f"{C.YELLOW}[2]{C.RESET} Binary -> IP")
-    choice = input(f"{C.CYAN}Seçim > {C.RESET}").strip()
+    choice = input(f"{C.CYAN}Choice > {C.RESET}").strip()
 
     if choice == "1":
         ip = get_ip_input()
         print_field("\nBinary", to_binary(ip), C.BLUE)
     elif choice == "2":
-        raw = input(f"{C.YELLOW}Binary IP girin (örn: 11000000.10101000.00000001.00001010): {C.RESET}").strip()
+        raw = input(f"{C.YELLOW}Enter binary IP (e.g. 11000000.10101000.00000001.00001010): {C.RESET}").strip()
         try:
             octets = raw.split(".")
             if len(octets) != 4:
-                raise ValueError("4 oktet olmalı")
+                raise ValueError("Must have 4 octets")
             decimal_octets = [str(int(o, 2)) for o in octets]
             ip = ".".join(decimal_octets)
-            ipaddress.ip_address(ip)  # doğrulama
-            print_field("\nIP Adresi", ip, C.CYAN)
+            ipaddress.ip_address(ip)  # validation
+            print_field("\nIP Address", ip, C.CYAN)
         except ValueError:
-            print(f"{C.RED}Geçersiz binary formatı!{C.RESET}")
+            print(f"{C.RED}Invalid binary format!{C.RESET}")
     else:
-        print(f"{C.RED}Geçersiz seçim!{C.RESET}")
+        print(f"{C.RED}Invalid choice!{C.RESET}")
 
 
 def help_menu():
     clear_line()
-    print(f"{C.BOLD}{C.MAGENTA}== Yardım =={C.RESET}")
+    print(f"{C.BOLD}{C.MAGENTA}== Help =={C.RESET}")
     print(f"""{C.DIM}
-Bu araç, IP adresleri ve CIDR (subnet) hesaplamaları yapmanızı sağlar.
+This tool lets you perform IP address and CIDR (subnet) calculations.
 {C.RESET}
 {C.YELLOW}1) Calculate CIDR{C.RESET}
-   Bir IP adresi ve CIDR (/24 gibi) girerek ağ adresi, broadcast,
-   subnet mask, kullanılabilir host aralığı gibi bilgileri hesaplar.
+   Enter an IP address and CIDR (e.g. /24) to calculate the network address,
+   broadcast address, subnet mask, usable host range, and more.
 
 {C.YELLOW}2) IP Information{C.RESET}
-   Girilen bir IP adresinin sınıfını, özel/genel olup olmadığını,
-   binary karşılığını ve diğer özelliklerini gösterir.
+   Shows the class of the entered IP address, whether it's private/public,
+   its binary representation, and other properties.
 
 {C.YELLOW}3) Subnet Mask from CIDR{C.RESET}
-   Sadece CIDR (prefix uzunluğu) girerek subnet mask'i hesaplar.
+   Calculates the subnet mask from just the CIDR (prefix length).
 
 {C.YELLOW}4) Wildcard Mask{C.RESET}
-   CIDR'den wildcard mask (subnet mask'in tersi) hesaplar.
+   Calculates the wildcard mask (the inverse of the subnet mask) from CIDR.
 
 {C.YELLOW}5) Binary Converter{C.RESET}
-   IP adresini binary'e, ya da binary'i IP adresine çevirir.
+   Converts an IP address to binary, or binary to an IP address.
 
-{C.DIM}Örnek CIDR notasyonu: 192.168.1.0/24{C.RESET}
+{C.DIM}Example CIDR notation: 192.168.1.0/24{C.RESET}
 """)
 
+
+# ----------------------------------------------------------------------
+# Main Menu
+# ----------------------------------------------------------------------
 
 def print_menu():
     print(BANNER)
@@ -253,7 +261,7 @@ def main():
         choice = input(f"{C.BOLD}{C.GREEN}Choice > {C.RESET}").strip()
 
         if choice == "0":
-            print(f"{C.CYAN}Çıkış yapılıyor... Görüşürüz!{C.RESET}")
+            print(f"{C.CYAN}Exiting... Goodbye!{C.RESET}")
             sys.exit(0)
 
         action = actions.get(choice)
@@ -261,16 +269,16 @@ def main():
             try:
                 action()
             except KeyboardInterrupt:
-                print(f"\n{C.RED}İşlem iptal edildi.{C.RESET}")
+                print(f"\n{C.RED}Operation cancelled.{C.RESET}")
         else:
-            print(f"{C.RED}Geçersiz seçim! Lütfen menüden bir seçenek girin.{C.RESET}")
+            print(f"{C.RED}Invalid choice! Please select an option from the menu.{C.RESET}")
 
-        input(f"\n{C.DIM}Devam etmek için Enter'a basın...{C.RESET}")
+        input(f"\n{C.DIM}Press Enter to continue...{C.RESET}")
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print(f"\n{C.CYAN}Çıkış yapılıyor...{C.RESET}")
+        print(f"\n{C.CYAN}Exiting...{C.RESET}")
         sys.exit(0)
